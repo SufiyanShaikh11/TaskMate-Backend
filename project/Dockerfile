@@ -1,14 +1,12 @@
-# Use a base Java image
-FROM eclipse-temurin:17-jdk-alpine
-
-# Set the working directory
+# Stage 1: Build the application
+FROM maven:3.8.5-openjdk-17-slim AS build
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Copy the built jar from your local machine (make sure to build it first)
-COPY target/*.jar app.jar
-
-# Expose port 8080 (used by Spring Boot)
+# Stage 2: Run the application
+FROM eclipse-temurin:17-jdk
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-
-# Command to run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
